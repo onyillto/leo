@@ -7,7 +7,7 @@ import App from "./App.vue";
 import Home from "./views/Home.vue";
 import Login from "./views/Login.vue";
 import Register from "./views/Register.vue";
-import About from "./views/About.vue";
+import DashBoard from "./views/DashBoard.vue";
 import Contact from "./views/Contact.vue";
 import TripList from "./views/TripList.vue";
 import Verify from "./views/Verify.vue";
@@ -27,8 +27,8 @@ const routes = [
     component: Register,
   },
   {
-    path: "/about",
-    component: About,
+    path: "/dashBoard",
+    component: DashBoard,
   },
   {
     path: "/contact",

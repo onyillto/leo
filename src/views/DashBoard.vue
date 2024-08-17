@@ -1,23 +1,46 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
 
-// Dummy data to represent subscribers
-const subscribers = ref([
-  { index: 1, email: 'user1@example.com', role: 'user' },
-  { index: 2, email: 'user2@example.com', role: 'user' },
-  { index: 3, email: 'user3@example.com', role: 'user' },
-  // Add more subscriber objects as needed
-]);
+const subscribers = ref([]);
 
-const deleteSubscriber = (index) => {
-  subscribers.value = subscribers.value.filter(sub => sub.index !== index);
+// Function to fetch subscribers from the API
+const fetchSubscribers = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/v1/email/mails');
+    subscribers.value = response.data.data; // Assuming the API returns { data: [...] }
+  } catch (error) {
+    console.error('Error fetching subscribers:', error);
+    // Handle error, maybe set an error message or notify the user
+  }
 };
+
+// Function to delete a subscriber
+const deleteSubscriber = async (id) => {
+  try {
+    // Send DELETE request to the server
+    await axios.delete(`http://localhost:3000/api/v1/email/${id}`);
+    
+    // Update the local state
+    subscribers.value = subscribers.value.filter(sub => sub._id !== id);
+  } catch (error) {
+    console.error('Error deleting subscriber:', error);
+    // Optionally, handle error by notifying the user
+  }
+};
+
+// Computed property to get the number of subscribers
+const subscriberCount = computed(() => subscribers.value.length);
+
+onMounted(() => {
+  fetchSubscribers();
+});
 </script>
 
 <template>
   <div class="text-gray-900 bg-gray-200 min-h-screen p-4">
     <div class="p-4 mb-4">
-      <h1 class="text-3xl font-bold">News Letter Subscribers</h1>
+      <h1 class="text-3xl font-bold">Newsletter Subscribers ({{ subscriberCount }})</h1>
     </div>
     <div class="px-3 py-4">
       <ul class="bg-white shadow-md rounded">
@@ -27,25 +50,25 @@ const deleteSubscriber = (index) => {
           <span class="flex-1">Role</span>
           <span class="flex-1 text-right">Actions</span>
         </li>
-        <li v-for="sub in subscribers" :key="sub.index" class="flex items-center border-b border-gray-200 hover:bg-gray-50">
-          <span class="flex-1 p-3">{{ sub.index }}</span>
-          <span class="flex-1 p-3">{{ sub.email }}</span>
-          <span class="flex-1 p-3">{{ sub.role }}</span>
-          <span class="flex-1 p-3 text-right">
+        <li v-for="(sub, index) in subscribers" :key="sub._id" class="flex items-center border-b border-gray-200 hover:bg-gray-50">
+          <span class="flex-1 p-3 bg-green-300">{{ index + 1 }}</span> <!-- Display the index as a count -->
+          <span class="flex-1 p-3 bg-blue-300">{{ sub.email }}</span>
+          <span class="flex-1 p-3 bg-purple-200">user</span>
+          <span class="flex-1 p-3 text-right bg-red-200">
             <button 
-              @click="deleteSubscriber(sub.index)"
+              @click="deleteSubscriber(sub._id)"
               class="text-sm bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"
             >
               Delete
             </button>
           </span>
         </li>
+        <li v-if="subscriberCount === 0" class="text-center p-3">
+          No subscribers found.
+        </li>
       </ul>
     </div>
   </div>
 </template>
 
-<style scoped>
-/* Add any additional styling here */
-</style>
 

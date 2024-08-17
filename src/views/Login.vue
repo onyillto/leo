@@ -7,7 +7,7 @@
       <p class="mt-2 text-center text-sm text-white">
         Don't have an account?
         <router-link
-          to="/signup"
+          to="/register"
           class="font-medium text-green-600 hover:text-blue-500 focus:outline-none focus:underline transition ease-in-out duration-150"
         >
           Register an account
@@ -88,7 +88,7 @@ const loginUser = async (event) => {
   const formData = new FormData(event.target);
 
   try {
-    const response = await axios.post('http://localhost:9000/api/v1/user/login', {
+    const response = await axios.post('http://localhost:3000/api/v1/user/login', {
       email: formData.get('email'),
       password: formData.get('password'),
     });
@@ -104,7 +104,7 @@ const loginUser = async (event) => {
       console.log('User logged in successfully:', data);
 
       // Redirect based on user role
-      router.push(data.role === 'admin' ? '/dashboard' : '/');
+      router.push(data.role === 'admin' ? '/dashboard' : '/dashboard');
     } else {
       console.error('Login failed:', response.data.message);
       // Handle login error here, such as displaying an error message to the user

@@ -71,7 +71,7 @@ const registerUser = async (event) => {
   const confirmPassword = formData.get('confirmPassword');
 
   try {
-    const response = await axios.post('http://localhost:9000/api/v1/user/register', {
+    const response = await axios.post('http://localhost:3000/api/v1/user/register', {
       fullName,
       email,
       password,

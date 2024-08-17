@@ -1,5 +1,5 @@
 <template>
-  <div class=" bg-gray-900 bg-[url('/bg.jpg')] bg-cover bg-center flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div class="bg-gray-900 bg-[url('/bg.jpg')] bg-cover bg-center flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="relative isolate overflow-hidden px-6 py-12 shadow-2xl rounded-xl sm:rounded-xl xl:py-24 w-full text-center bg-gray-900 bg-opacity-75">
       <!-- Image Section -->
       <div class="flex justify-center mb-4">
@@ -21,15 +21,58 @@
       </p>
 
       <!-- Form -->
-      <form class="mx-auto mt-8 flex max-w-md gap-x-4">
+      <form @submit.prevent="submitEmail" class="mx-auto mt-8 flex max-w-md gap-x-4">
         <label for="email-address" class="sr-only">Email address</label>
-        <input id="email-address" name="email" type="email" autocomplete="email" required="true" class="min-w-0 flex-auto rounded-md border-0 bg-gray-200 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-900 sm:text-sm sm:leading-6" placeholder="Enter your email">
+        <input
+          id="email-address"
+          v-model="email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          required="true"
+          class="min-w-0 flex-auto rounded-md border-0 bg-gray-200 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-900 sm:text-sm sm:leading-6"
+          placeholder="Enter your email"
+        />
         <button type="submit" class="flex-none rounded-md bg-yellow-400 px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">Subscribe</button>
       </form>
 
-      <!-- Background SVG -->
+      <!-- Notification -->
+      <p v-if="message" :class="{'text-green-500': success, 'text-red-500': !success}" class="mt-4">
+        {{ message }}
+      </p>
     </div>
   </div>
 </template>
+
+<script>
+import axios from "axios";
+
+export default {
+  data() {
+    return {
+      email: "",
+      message: "",
+      success: false
+    };
+  },
+  methods: {
+    async submitEmail() {
+      try {
+        const response = await axios.post("http://localhost:3000/api/v1/email/post", {
+          email: this.email
+        });
+
+        this.message = response.data.message;
+        this.success = true;
+        this.email = ""; // Clear the email input after success
+      } catch (error) {
+        this.message = "Failed to send email. Please try again.";
+        this.success = false;
+      }
+    }
+  }
+};
+</script>
+
 
 

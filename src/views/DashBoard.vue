@@ -53,7 +53,7 @@ onMounted(() => {
         <li v-for="(sub, index) in subscribers" :key="sub._id" class="flex flex-wrap items-center justify-between border-b border-gray-200 hover:bg-gray-50">
           <span class="w-1/4 lg:w-1/12 p-3 text-center bg-green-300">{{ index + 1 }}</span>
           <span class="w-1/2 lg:w-5/12 p-3 text-center bg-blue-300 break-words">{{ sub.email }}</span>
-          <span class="hidden lg:inline-block lg:w-3/12 p-3 text-center bg-purple-200">user</span> <!-- Hidden on mobile, visible on larger screens -->
+          <span class="hidden lg:inline-block lg:w-3/12 p-3 text-center bg-purple-200">Subscriber</span> <!-- Hidden on mobile, visible on larger screens -->
           <span class="w-1/4 lg:w-3/12 p-3 text-center">
             <button 
               @click="deleteSubscriber(sub._id)"

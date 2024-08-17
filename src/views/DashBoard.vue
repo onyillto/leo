@@ -39,22 +39,22 @@ onMounted(() => {
 
 <template>
   <div class="text-gray-900 bg-gray-200 min-h-screen p-4">
-    <div class="p-4 mb-4">
-      <h1 class="text-3xl font-bold">Newsletter Subscribers ({{ subscriberCount }})</h1>
+    <div class="p-4 mb-4 text-center">
+      <h1 class="text-2xl sm:text-3xl font-bold">Newsletter Subscribers ({{ subscriberCount }})</h1>
     </div>
-    <div class="px-3 py-4">
+    <div class="px-2 py-4">
       <ul class="bg-white shadow-md rounded">
-        <li class="flex border-b border-gray-200 p-3 bg-gray-100 text-gray-700 font-medium">
-          <span class="flex-1">Index Number</span>
-          <span class="flex-1">Email</span>
-          <span class="flex-1">Role</span>
-          <span class="flex-1 text-right">Actions</span>
+        <li class="flex flex-wrap justify-between border-b border-gray-200 p-3 bg-gray-100 text-gray-700 font-medium">
+          <span class="w-1/4 lg:w-1/12 text-center">Index</span>
+          <span class="w-1/2 lg:w-5/12 text-center">Email</span>
+          <span class="hidden lg:inline-block lg:w-3/12 text-center">Role</span> <!-- Hidden on mobile, visible on larger screens -->
+          <span class="w-1/4 lg:w-3/12 text-center">Actions</span>
         </li>
-        <li v-for="(sub, index) in subscribers" :key="sub._id" class="flex items-center border-b border-gray-200 hover:bg-gray-50">
-          <span class="flex-1 p-3 bg-green-300">{{ index + 1 }}</span> <!-- Display the index as a count -->
-          <span class="flex-1 p-3 bg-blue-300">{{ sub.email }}</span>
-          <span class="flex-1 p-3 bg-purple-200">user</span>
-          <span class="flex-1 p-3 text-right bg-red-">
+        <li v-for="(sub, index) in subscribers" :key="sub._id" class="flex flex-wrap items-center justify-between border-b border-gray-200 hover:bg-gray-50">
+          <span class="w-1/4 lg:w-1/12 p-3 text-center bg-green-300">{{ index + 1 }}</span>
+          <span class="w-1/2 lg:w-5/12 p-3 text-center bg-blue-300 break-words">{{ sub.email }}</span>
+          <span class="hidden lg:inline-block lg:w-3/12 p-3 text-center bg-purple-200">user</span> <!-- Hidden on mobile, visible on larger screens -->
+          <span class="w-1/4 lg:w-3/12 p-3 text-center">
             <button 
               @click="deleteSubscriber(sub._id)"
               class="text-sm bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"
@@ -70,5 +70,9 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+
+
+
 
 

@@ -15,16 +15,19 @@ const fetchSubscribers = async () => {
   }
 };
 
-// Function to delete a subscriber
-const deleteSubscriber = async (id) => {
+// Function to toggle the active status of a subscriber
+const toggleActiveStatus = async (id, isActive) => {
   try {
-    // Send DELETE request to the server
-    await axios.delete(`https://leo-backend-7mm5.onrender.com/api/v1/email/${id}`);
+    // Send PUT or PATCH request to update the subscriber's status
+    await axios.patch(`https://leo-backend-7mm5.onrender.com/api/v1/email/${id}`, { active: !isActive });
     
     // Update the local state
-    subscribers.value = subscribers.value.filter(sub => sub._id !== id);
+    const subscriber = subscribers.value.find(sub => sub._id === id);
+    if (subscriber) {
+      subscriber.active = !isActive;
+    }
   } catch (error) {
-    console.error('Error deleting subscriber:', error);
+    console.error('Error updating subscriber status:', error);
     // Optionally, handle error by notifying the user
   }
 };
@@ -53,13 +56,14 @@ onMounted(() => {
         <li v-for="(sub, index) in subscribers" :key="sub._id" class="flex flex-wrap items-center justify-between border-b border-gray-200 hover:bg-gray-50">
           <span class="w-1/4 lg:w-1/12 p-3 text-center bg-green-300">{{ index + 1 }}</span>
           <span class="w-1/2 lg:w-5/12 p-3 text-center bg-blue-300 break-words">{{ sub.email }}</span>
-          <span class="hidden lg:inline-block lg:w-3/12 p-3 text-center bg-purple-200">Subscriber</span> <!-- Hidden on mobile, visible on larger screens -->
+          <span class="hidden lg:inline-block lg:w-3/12 p-3 text-center bg-purple-200">Subscribed</span> <!-- Hidden on mobile, visible on larger screens -->
           <span class="w-1/4 lg:w-3/12 p-3 text-center">
             <button 
-              @click="deleteSubscriber(sub._id)"
-              class="text-sm bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+              @click="toggleActiveStatus(sub._id, sub.active)"
+              :class="sub.active ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-700'"
+              class="text-sm text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"
             >
-              Delete
+              {{ sub.active ? 'Active' : 'Non-Active' }}
             </button>
           </span>
         </li>
@@ -70,6 +74,7 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
 
 
 

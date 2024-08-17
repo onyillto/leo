@@ -66,7 +66,7 @@ export default {
         this.success = true;
         this.email = ""; // Clear the email input after success
       } catch (error) {
-        this.message = "Failed to send email. Please try again.";
+        this.message = "Failed to send email. You cant use same email twice.";
         this.success = false;
       }
     }

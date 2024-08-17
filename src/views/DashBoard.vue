@@ -7,7 +7,7 @@ const subscribers = ref([]);
 // Function to fetch subscribers from the API
 const fetchSubscribers = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/v1/email/mails');
+    const response = await axios.get('https://leo-backend-7mm5.onrender.com/api/v1/email/mails');
     subscribers.value = response.data.data; // Assuming the API returns { data: [...] }
   } catch (error) {
     console.error('Error fetching subscribers:', error);
@@ -19,7 +19,7 @@ const fetchSubscribers = async () => {
 const deleteSubscriber = async (id) => {
   try {
     // Send DELETE request to the server
-    await axios.delete(`http://localhost:3000/api/v1/email/${id}`);
+    await axios.delete(`https://leo-backend-7mm5.onrender.com/api/v1/email/${id}`);
     
     // Update the local state
     subscribers.value = subscribers.value.filter(sub => sub._id !== id);
@@ -54,7 +54,7 @@ onMounted(() => {
           <span class="flex-1 p-3 bg-green-300">{{ index + 1 }}</span> <!-- Display the index as a count -->
           <span class="flex-1 p-3 bg-blue-300">{{ sub.email }}</span>
           <span class="flex-1 p-3 bg-purple-200">user</span>
-          <span class="flex-1 p-3 text-right bg-red-200">
+          <span class="flex-1 p-3 text-right bg-red-">
             <button 
               @click="deleteSubscriber(sub._id)"
               class="text-sm bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"

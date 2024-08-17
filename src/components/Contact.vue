@@ -58,7 +58,7 @@ export default {
   methods: {
     async submitEmail() {
       try {
-        const response = await axios.post("http://localhost:3000/api/v1/email/post", {
+        const response = await axios.post("https://leo-backend-7mm5.onrender.com/api/v1/email/post", {
           email: this.email
         });
 

@@ -18,8 +18,8 @@ const fetchSubscribers = async () => {
 // Function to toggle the active status of a subscriber
 const toggleActiveStatus = async (id, isActive) => {
   try {
-    // Send PUT or PATCH request to update the subscriber's status
-    await axios.patch(`https://leo-backend-7mm5.onrender.com/api/v1/email/${id}`, { active: !isActive });
+    // Send POST request to update the subscriber's status
+    await axios.post(`https://leo-backend-7mm5.onrender.com/api/v1/email/toggle-status/${id}`, { status: !isActive });
     
     // Update the local state
     const subscriber = subscribers.value.find(sub => sub._id === id);

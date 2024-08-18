@@ -60,10 +60,10 @@ onMounted(() => {
           <span class="w-1/4 lg:w-3/12 p-3 text-center">
             <button 
               @click="toggleActiveStatus(sub._id, sub.active)"
-              :class="sub.active ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-700'"
+              :class="sub.active ? 'bg-green-500 hover:bg-green-700' : 'bg-green-500 hover:bg-gray-700'"
               class="text-sm text-white py-1 px-2 rounded focus:outline-none focus:shadow-outline"
             >
-              {{ sub.active ? 'Active' : 'Non-Active' }}
+              {{ sub.active ? 'Active' : 'Active' }}
             </button>
           </span>
         </li>

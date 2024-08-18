@@ -101,7 +101,7 @@ const loginUser = async (event) => {
       localStorage.setItem('userId', data._id);
       localStorage.setItem('user', JSON.stringify(data));
 
-      console.log('User logged in successfully:', data);
+      console.log('User logged in successfully:');
 
       // Redirect based on user role
       router.push(data.role === 'admin' ? '/dashboard' : '/dashboard');

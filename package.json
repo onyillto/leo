@@ -9,10 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mdi/font": "^7.4.47",
     "axios": "^1.7.0",
     "flatpickr": "^4.6.13",
     "vue": "^3.4.21",
-    "vue-router": "^4.3.2"
+    "vue-router": "^4.3.2",
+    "vuetify": "^3.8.4"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

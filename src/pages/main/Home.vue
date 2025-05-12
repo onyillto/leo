@@ -2,7 +2,7 @@
   <v-container>
     <!-- Filter Bar -->
     <v-row class="mb-4">
-      <v-col cols="6">
+      <v-col cols="4">
         <v-select
           v-model="startingLocation"
           :items="locations"
@@ -10,9 +10,10 @@
           outlined
           clearable
           color="blue"
+          @change="filterTrips"
         />
       </v-col>
-      <v-col cols="6">
+      <v-col cols="4">
         <v-select
           v-model="destination"
           :items="locations"
@@ -20,6 +21,18 @@
           outlined
           clearable
           color="blue"
+          @change="filterTrips"
+        />
+      </v-col>
+      <v-col cols="4">
+        <v-text-field
+          v-model="selectedDate"
+          label="Date"
+          type="date"
+          outlined
+          clearable
+          color="blue"
+          @change="filterTrips"
         />
       </v-col>
     </v-row>
@@ -27,12 +40,12 @@
     <!-- Bookings Header -->
     <h2 class="text-h6 font-weight-medium mb-4">Bookings</h2>
     <p class="grey--text mb-6">
-      {{ startingLocation || 'Lagos (Iyana Ipaja)' }} => {{ destination || 'FCT Abuja (Utako)' }} May 15, 2025. 1 Adult(s)
+      {{ startingLocation || 'Lagos (Iyana Ipaja)' }} => {{ destination || 'FCT Abuja (Utako)' }} {{ selectedDate || 'May 15, 2025' }}. {{ selectedSeats || 1 }} Adult(s)
     </p>
 
     <!-- Trip Listings -->
     <v-card
-      v-for="(trip, index) in trips"
+      v-for="(trip, index) in filteredTrips"
       :key="index"
       class="mb-4"
       outlined
@@ -55,7 +68,7 @@
               Departure: {{ trip.departure }} - Arrival: {{ trip.arrival }}<br />
               {{ trip.seats }} seats (available) @ {{ trip.time }}
             </p>
-            <p class="grey--text">Adult: 1</p>
+            <p class="grey--text">Adult: {{ selectedSeats || 1 }}</p>
           </v-col>
           <v-col cols="2" class="text-right">
             <h3 class="text-h6">₦{{ trip.price.toLocaleString() }}</h3>
@@ -65,7 +78,7 @@
             <v-btn
               color="blue"
               dark
-              @click="viewSeats(trip)"
+              @click="openModal(trip)"
             >
               Book Trip
             </v-btn>
@@ -73,15 +86,40 @@
         </v-row>
       </v-card-text>
     </v-card>
+
+    <!-- Modal for Seat Selection -->
+    <v-dialog v-model="dialog" max-width="400">
+      <v-card>
+        <v-card-title class="headline">Select Number of Adults</v-card-title>
+        <v-card-text>
+          <v-select
+            v-model="selectedSeats"
+            :items="seatOptions"
+            label="Number of Adults"
+            outlined
+            color="blue"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="blue" text @click="dialog = false">Cancel</v-btn>
+          <v-btn color="blue" dark @click="confirmSeats">Confirm</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 // Filter data
 const startingLocation = ref(null);
 const destination = ref(null);
+const selectedDate = ref(null);
+const selectedSeats = ref(1);
+const dialog = ref(false);
+const seatOptions = [1, 2, 3, 4, 5];
+
 const locations = [
   "Lagos (Iyana Ipaja)",
   "FCT Abuja (Utako)",
@@ -90,7 +128,7 @@ const locations = [
   "Kano",
 ];
 
-// Trip data with public images (using placeholder public paths)
+// Trip data with public images
 const trips = ref([
   {
     vehicle: "Toyota (Hiace X)",
@@ -100,7 +138,7 @@ const trips = ref([
     time: "05:30 AM",
     price: 49000,
     cashback: 980,
-    image: "/honda.jpeg", // Public image path
+    image: "/honda.jpeg",
   },
   {
     vehicle: "Toyota Camry",
@@ -110,7 +148,7 @@ const trips = ref([
     time: "06:30 AM",
     price: 45000,
     cashback: 900,
-    image: "/venza.jpeg", // Public image path
+    image: "/venza.jpeg",
   },
   {
     vehicle: "Honda Accord",
@@ -120,7 +158,7 @@ const trips = ref([
     time: "07:00 AM",
     price: 48000,
     cashback: 950,
-    image: "/honda.jpeg", // Public image path
+    image: "/honda.jpeg",
   },
   {
     vehicle: "Toyota Venza",
@@ -130,7 +168,7 @@ const trips = ref([
     time: "08:00 AM",
     price: 50000,
     cashback: 1000,
-    image: "/venzaa.jpeg", // Public image path
+    image: "/venzaa.jpeg",
   },
   {
     vehicle: "Honda Accord",
@@ -140,15 +178,34 @@ const trips = ref([
     time: "09:00 AM",
     price: 47000,
     cashback: 920,
-    image: "/hiace.jpeg", // Public image path
+    image: "/hiace.jpeg",
   },
 ]);
 
-// Placeholder function for booking a trip
-const viewSeats = (trip) => {
-  console.log("Booking trip:", trip);
-  // Add navigation or modal logic here
+// Filtering logic
+const filteredTrips = computed(() => {
+  return trips.value.filter(trip => {
+    const matchesStart = !startingLocation.value || trip.departure === startingLocation.value;
+    const matchesDest = !destination.value || trip.arrival === destination.value;
+    const matchesDate = !selectedDate.value || trip.time.split(' ')[0] === selectedDate.value.split('-')[2]; // Simple date matching with day
+    return matchesStart && matchesDest && matchesDate;
+  });
+});
+
+// Modal and booking functions
+const openModal = (trip) => {
+  dialog.value = true;
+  // Store the selected trip for reference if needed
+  selectedTrip.value = trip;
 };
+
+const confirmSeats = () => {
+  console.log("Booking trip with", selectedSeats.value, "adults:", selectedTrip.value);
+  dialog.value = false;
+  // Add booking logic here
+};
+
+const selectedTrip = ref(null);
 </script>
 
 <style scoped>
@@ -158,7 +215,7 @@ const viewSeats = (trip) => {
 }
 
 /* Style the filter bar labels */
-.v-select .v-label {
+.v-select .v-label, .v-text-field .v-label {
   color: #1976d2 !important;
 }
 

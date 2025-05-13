@@ -1,28 +1,57 @@
 <template>
-  <v-container class="py-8 px-4 sm:px-8">
+  <v-container class="py-8">
     <h2 class="text-2xl font-bold mb-6 text-gray-800">Transaction History</h2>
 
     <!-- Summary Cards -->
     <v-row class="mb-6">
-      <v-col
-        v-for="(stat, index) in summaryStats"
-        :key="index"
-        cols="12"
-        sm="6"
-        md="3"
-      >
-        <v-card
-          class="pa-4 h-full"
-          outlined
-          :class="{ 'hover:shadow-lg': $vuetify.breakpoint.smAndUp }"
-        >
+      <v-col cols="12" sm="3">
+        <v-card class="pa-4" outlined>
           <v-row align="center">
             <v-col cols="3">
-              <v-icon large :color="stat.color">{{ stat.icon }}</v-icon>
+              <v-icon large color="blue">mdi-car</v-icon>
             </v-col>
             <v-col cols="9">
-              <h3 class="text-lg font-semibold text-gray-700">{{ stat.label }}</h3>
-              <p class="text-2xl font-bold text-gray-900">{{ stat.value }}</p>
+              <h3 class="text-lg font-semibold text-gray-700">Total Bookings</h3>
+              <p class="text-2xl font-bold text-gray-900">{{ summary.totalBookings }}</p>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+      <v-col cols="12" sm="3">
+        <v-card class="pa-4" outlined>
+          <v-row align="center">
+            <v-col cols="3">
+              <v-icon large color="green">mdi-currency-ngn</v-icon>
+            </v-col>
+            <v-col cols="9">
+              <h3 class="text-lg font-semibold text-gray-700">Total Spent</h3>
+              <p class="text-2xl font-bold text-gray-900">₦{{ summary.totalSpent.toLocaleString() }}</p>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+      <v-col cols="12" sm="3">
+        <v-card class="pa-4" outlined>
+          <v-row align="center">
+            <v-col cols="3">
+              <v-icon large color="orange">mdi-clock-outline</v-icon>
+            </v-col>
+            <v-col cols="9">
+              <h3 class="text-lg font-semibold text-gray-700">Pending Payments</h3>
+              <p class="text-2xl font-bold text-gray-900">{{ summary.pendingPayments }}</p>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+      <v-col cols="12" sm="3">
+        <v-card class="pa-4" outlined>
+          <v-row align="center">
+            <v-col cols="3">
+              <v-icon large color="purple">mdi-check-circle</v-icon>
+            </v-col>
+            <v-col cols="9">
+              <h3 class="text-lg font-semibold text-gray-700">Completed Trips</h3>
+              <p class="text-2xl font-bold text-gray-900">{{ summary.completedTrips }}</p>
             </v-col>
           </v-row>
         </v-card>
@@ -31,122 +60,88 @@
 
     <!-- Filter Bar -->
     <v-row class="mb-6">
-      <v-col
-        v-for="(filter, index) in filters"
-        :key="index"
-        cols="12"
-        sm="6"
-        md="3"
-      >
-        <component
-          :is="filter.component"
-          v-model="filter.model"
-          :items="filter.items"
-          :label="filter.label"
+      <v-col cols="12" sm="3">
+        <v-select
+          v-model="statusFilter"
+          :items="['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled']"
+          label="Booking Status"
           outlined
           clearable
           color="blue"
           dense
-          class="w-full"
+        />
+      </v-col>
+      <v-col cols="12" sm="3">
+        <v-select
+          v-model="paymentStatusFilter"
+          :items="['All', 'Paid', 'Pending', 'Failed']"
+          label="Payment Status"
+          outlined
+          clearable
+          color="blue"
+          dense
+        />
+      </v-col>
+      <v-col cols="12" sm="3">
+        <v-select
+          v-model="paymentMethodFilter"
+          :items="['All', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Cash']"
+          label="Payment Method"
+          outlined
+          clearable
+          color="blue"
+          dense
+        />
+      </v-col>
+      <v-col cols="12" sm="3">
+        <v-text-field
+          v-model="dateFilter"
+          label="Booking Date"
+          type="date"
+          outlined
+          clearable
+          color="blue"
+          dense
         />
       </v-col>
     </v-row>
 
-    <!-- Transaction History (Table on Desktop, Cards on Mobile) -->
-    <div class="hidden sm:block">
-      <v-data-table
-        :headers="headers"
-        :items="filteredBookings"
-        class="elevation-1 rounded-lg"
-        :items-per-page="10"
-        :loading="loading"
-        loading-text="Loading transactions..."
-      >
-        <template v-slot:item.status="{ item }">
-          <v-chip
-            :color="getStatusColor(item.status)"
-            dark
-            small
-            class="font-semibold"
-          >
-            {{ item.status }}
-          </v-chip>
-        </template>
-        <template v-slot:item.price="{ item }">
-          <span>₦{{ item.price.toLocaleString() }}</span>
-        </template>
-        <template v-slot:item.actions="{ item }">
-          <v-btn
-            icon
-            small
-            color="blue"
-            @click="viewBookingDetails(item)"
-          >
-            <v-icon>mdi-eye</v-icon>
-          </v-btn>
+    <!-- Transaction History Table -->
+    <v-data-table
+      :headers="headers"
+      :items="filteredBookings"
+      class="elevation-1 rounded-lg"
+      :items-per-page="10"
+      :loading="loading"
+      loading-text="Loading transactions..."
+    >
+      <template v-slot:item.status="{ item }">
+        <v-chip
+          :color="getStatusColor(item.status)"
+          dark
+          small
+          class="font-semibold"
+        >
+          {{ item.status }}
+        </v-chip>
+      </template>
+      <template v-slot:item.price="{ item }">
+        <span>₦{{ item.price.toLocaleString() }}</span>
+      </template>
+      <template v-slot:item.actions="{ item }">
+        <v-btn
+          icon
+          small
+          color="blue"
+          @click="viewBookingDetails(item)"
+        >
+          <v-icon>mdi-eye</v-icon>
+        </v-btn>
       </template>
     </v-data-table>
-    </div>
-    <div class="sm:hidden">
-      <v-row>
-        <v-col
-          v-for="(item, index) in filteredBookings"
-          :key="index"
-          cols="12"
-          class="mb-4"
-        >
-          <v-card outlined class="pa-4">
-            <v-row>
-              <v-col cols="12">
-                <h3 class="text-lg font-semibold text-gray-700">Booking #{{ item.id }}</h3>
-              </v-col>
-              <v-col cols="6">
-                <strong>Vehicle:</strong> {{ item.vehicle }}
-              </v-col>
-              <v-col cols="6">
-                <strong>Pickup:</strong> {{ item.origin }}
-              </v-col>
-              <v-col cols="6">
-                <strong>Dropoff:</strong> {{ item.destination }}
-              </v-col>
-              <v-col cols="6">
-                <strong>Date:</strong> {{ item.date }}
-              </v-col>
-              <v-col cols="6">
-                <strong>Passengers:</strong> {{ item.seats }}
-              </v-col>
-              <v-col cols="6">
-                <strong>Price:</strong> ₦{{ item.price.toLocaleString() }}
-              </v-col>
-              <v-col cols="6">
-                <strong>Status:</strong>
-                <v-chip
-                  :color="getStatusColor(item.status)"
-                  dark
-                  small
-                  class="ml-2 font-semibold"
-                >
-                  {{ item.status }}
-                </v-chip>
-              </v-col>
-              <v-col cols="6">
-                <v-btn
-                  icon
-                  small
-                  color="blue"
-                  @click="viewBookingDetails(item)"
-                >
-                  <v-icon>mdi-eye</v-icon>
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-card>
-        </v-col>
-      </v-row>
-    </div>
 
     <!-- Transaction Details Dialog -->
-    <v-dialog v-model="detailsDialog" max-width="90vw" :style="{ maxWidth: $vuetify.breakpoint.smAndDown ? '90vw' : '600px' }">
+    <v-dialog v-model="detailsDialog" max-width="600">
       <v-card v-if="selectedBooking" class="rounded-lg">
         <v-card-title class="text-xl font-bold text-gray-800 bg-gray-50">
           Transaction Details
@@ -156,10 +151,10 @@
             <v-col cols="12">
               <h3 class="text-lg font-semibold text-gray-700 mb-2">Booking Information</h3>
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Vehicle:</strong> {{ selectedBooking.vehicle }}
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Status:</strong>
               <v-chip
                 :color="getStatusColor(selectedBooking.status)"
@@ -170,38 +165,38 @@
                 {{ selectedBooking.status }}
               </v-chip>
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Pickup:</strong> {{ selectedBooking.origin }}
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Dropoff:</strong> {{ selectedBooking.destination }}
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Date:</strong> {{ selectedBooking.date }}
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Time:</strong> {{ selectedBooking.time }}
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Passengers:</strong> {{ selectedBooking.seats }}
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Traveler:</strong> {{ selectedBooking.name }}
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Driver:</strong> {{ selectedBooking.driverName }}
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Driver Phone:</strong> {{ selectedBooking.driverPhone }}
             </v-col>
             <v-col cols="12">
               <v-divider class="my-4"></v-divider>
               <h3 class="text-lg font-semibold text-gray-700 mb-2">Payment Information</h3>
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Total Price:</strong> ₦{{ selectedBooking.price.toLocaleString() }}
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Payment Status:</strong>
               <v-chip
                 :color="getPaymentStatusColor(selectedBooking.paymentStatus)"
@@ -212,13 +207,13 @@
                 {{ selectedBooking.paymentStatus }}
               </v-chip>
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Payment Method:</strong> {{ selectedBooking.paymentMethod }}
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Transaction ID:</strong> {{ selectedBooking.transactionId }}
             </v-col>
-            <v-col cols="6" sm="4">
+            <v-col cols="6">
               <strong>Payment Date:</strong> {{ selectedBooking.paymentDate }}
             </v-col>
           </v-row>
@@ -264,13 +259,6 @@ const headers = [
 ];
 
 // Summary statistics
-const summaryStats = computed(() => [
-  { label: 'Total Bookings', value: summary.value.totalBookings, icon: 'mdi-car', color: 'blue' },
-  { label: 'Total Spent', value: `₦${summary.value.totalSpent.toLocaleString()}`, icon: 'mdi-currency-ngn', color: 'green' },
-  { label: 'Pending Payments', value: summary.value.pendingPayments, icon: 'mdi-clock-outline', color: 'orange' },
-  { label: 'Completed Trips', value: summary.value.completedTrips, icon: 'mdi-check-circle', color: 'purple' },
-]);
-
 const summary = computed(() => {
   const totalBookings = bookings.value.length;
   const totalSpent = bookings.value.reduce((sum, booking) => sum + booking.price, 0);
@@ -396,13 +384,6 @@ const fetchBookings = async () => {
   }
 };
 
-// Filters configuration
-const filters = computed(() => [
-  { component: 'v-select', model: statusFilter, items: ['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled'], label: 'Booking Status' },
-  { component: 'v-select', model: paymentStatusFilter, items: ['All', 'Paid', 'Pending', 'Failed'], label: 'Payment Status' },
-  { component: 'v-select', model: paymentMethodFilter, items: ['All', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Cash'], label: 'Payment Method' },
-  { component: 'v-text-field', model: dateFilter, items: [], label: 'Booking Date', type: 'date' },
-]);
 
 // Lifecycle
 fetchBookings();
@@ -441,18 +422,5 @@ fetchBookings();
 
 .text-gray-900 {
   color: #111827;
-}
-
-@media (max-width: 600px) {
-  .v-card-text {
-    font-size: 0.9rem;
-  }
-  .v-card-title {
-    font-size: 1.25rem;
-  }
-  .v-chip {
-    font-size: 0.75rem;
-    padding: 2px 6px;
-  }
 }
 </style>

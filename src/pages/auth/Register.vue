@@ -2,13 +2,13 @@
   <div class="register-container">
     <!-- Back arrow -->
     <span class="back-arrow">←</span>
-
+    
     <!-- Illustration image -->
     <img src="/create-account-illustration.png" alt="Create Account" class="illustration" />
-
+    
     <!-- Title -->
     <h2 class="title">Create Account</h2>
-
+    
     <!-- Registration Form -->
     <form @submit.prevent="handleRegister" class="register-form">
       <input
@@ -35,14 +35,21 @@
         placeholder="Confirm Password"
         required
       />
-
+      
       <button type="submit" :disabled="loading">
         {{ loading ? 'Registering...' : 'Continue' }}
       </button>
-
+      
       <p v-if="message" class="success">{{ message }}</p>
       <p v-if="error" class="error">{{ error }}</p>
     </form>
+
+    <!-- Sign In Link -->
+    <div class="signin-container">
+      <p class="signin-text">
+        Already have an account? <a href="/login" class="signin-link">Sign in</a>
+      </p>
+    </div>
   </div>
 </template>
 
@@ -62,20 +69,20 @@ const handleRegister = async () => {
     error.value = 'All fields are required.';
     return;
   }
-
+  
   if (password.value !== confirmPassword.value) {
     error.value = 'Passwords do not match.';
     return;
   }
-
+  
   loading.value = true;
   error.value = '';
   message.value = '';
-
+  
   setTimeout(() => {
     message.value = 'Registration successful!';
     loading.value = false;
-
+    
     name.value = '';
     email.value = '';
     password.value = '';
@@ -154,6 +161,29 @@ button:disabled {
   color: red;
   text-align: center;
   margin-top: 1rem;
+}
+
+/* Sign In link styles */
+.signin-container {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.signin-text {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.signin-link {
+  color: #2563eb;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.signin-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
 }
 </style>
 

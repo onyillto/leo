@@ -15,14 +15,14 @@ import ResetPassword from "../pages/auth/ResetPassword.vue";
 import Home from "../pages/main/Home.vue";
 import Dashboard from "../pages/main/Dashboard.vue";
 import Profile from "../pages/main/Profile.vue";
-
+import Landing from "../pages/main/Landing.vue";
 const routes = [
   {
     path: "/auth",
     component: AuthLayout,
     children: [
       { path: "login", name: "Login", component: Login },
-      { path: "register", name: "Register", component: Register },
+      { path: "signup", name: "Register", component: Register },
       { path: "forgot-password", component: ForgotPassword },
       { path: "reset-password", component: ResetPassword },
       { path: "verify-email", component: VerifyEmailCode },
@@ -32,9 +32,11 @@ const routes = [
     path: "/",
     component: MainLayout,
     children: [
-      { path: "", name: "Home", component: Home },
+      { path: "home", name: "Home", component: Home },
       { path: "transaction", name: "Dashboard", component: Dashboard },
       { path: "profile", name: "Profile", component: Profile },
+      
+      { path: "", name: "Landing", component: Landing },
     ],
   },
   {

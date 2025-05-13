@@ -1,5 +1,10 @@
 <template>
+     <div>
+    <BloomRydesModal :isOpen="true" />
+  </div>
   <v-container>
+
+
     <!-- Filter Bar -->
     <v-row class="mb-4">
       <v-col cols="4">
@@ -39,9 +44,9 @@
 
     <!-- Bookings Header -->
     <h2 class="text-h6 font-weight-medium mb-4">Bookings</h2>
-    <p class="grey--text mb-6">
+    <!-- <p class="grey--text mb-6">
       {{ startingLocation || 'Lagos (Iyana Ipaja)' }} => {{ destination || 'FCT Abuja (Utako)' }} {{ selectedDate || 'May 15, 2025' }}. {{ selectedSeats || 1 }} Adult(s)
-    </p>
+    </p> -->
 
     <!-- Trip Listings -->
     <v-card
@@ -111,7 +116,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-
+import BloomRydesModal from '@/components/Banner.vue';
 // Filter data
 const startingLocation = ref(null);
 const destination = ref(null);
@@ -235,3 +240,5 @@ const selectedTrip = ref(null);
   object-fit: cover !important;
 }
 </style>
+
+

@@ -74,6 +74,13 @@
               <p v-if="error" class="error-message">{{ error }}</p>
             </div>
           </form>
+
+          <!-- Signup Link -->
+          <div class="signup-container">
+            <p class="signup-text">
+              Don't have an account? <a href="/signup" class="signup-link">Sign up</a>
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -307,5 +314,31 @@ const handleLogin = async () => {
   border-radius: 8px;
   font-size: 14px;
   margin: 0;
+}
+
+/* New signup container styles */
+.signup-container {
+  margin-top: 24px;
+  text-align: center;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.signup-text {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+.signup-link {
+  color: #4f46e5;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.signup-link:hover {
+  color: #4338ca;
+  text-decoration: underline;
 }
 </style>

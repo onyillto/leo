@@ -2,7 +2,7 @@
   <v-app>
     <!-- Desktop Sidebar Navigation - Hidden on "/" and "/path" -->
     <v-navigation-drawer
-      v-if="!hideNavigation"
+      v-if="!hideNavigation && isAuthenticated"
       v-model="drawer"
       app
       permanent
@@ -22,13 +22,13 @@
     </v-navigation-drawer>
     
     <!-- Main Content -->
-    <v-main class="app-main-content" :class="{ 'no-sidebar': hideNavigation }">
+    <v-main class="app-main-content" :class="{ 'no-sidebar': hideNavigation || !isAuthenticated }">
       <router-view />
     </v-main>
     
     <!-- Mobile Bottom Navigation - Hidden on "/" and "/path" -->
     <v-bottom-navigation
-      v-if="!hideNavigation"
+      v-if="!hideNavigation && isAuthenticated"
       v-model="activeNav"
       color="blue"
       class="d-md-none app-bottom-nav"
@@ -50,11 +50,13 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
+const router = useRouter();
 const drawer = ref(true);
 const activeNav = ref('');
+const isAuthenticated = ref(false);
 
 // Hide navigation on specific routes
 const hideNavigation = computed(() => {
@@ -68,6 +70,41 @@ const navigation = [
   { segment: "logout", title: "Logout", icon: "mdi-logout" },
 ];
 
+// Check if user is authenticated by verifying token
+const checkAuthentication = () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    isAuthenticated.value = false;
+    // Redirect to login if not authenticated and not on a public route
+    if (!isPublicRoute(route.path)) {
+      router.push('/auth/login');
+    }
+    return;
+  }
+  
+  // Token exists, update authenticated state
+  isAuthenticated.value = true;
+  
+  // Handle logout navigation item click
+  if (route.path === '/logout') {
+    logout();
+  }
+};
+
+// Determine if route is public (doesn't require authentication)
+const isPublicRoute = (path) => {
+  const publicRoutes = ['/', '/path', '/auth/login', '/auth/signup'];
+  return publicRoutes.some(route => path.startsWith(route));
+};
+
+// Logout function
+const logout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  isAuthenticated.value = false;
+  router.push('/auth/login');
+};
+
 const updateActiveNav = () => {
   const path = route.path.replace('/', '');
   activeNav.value = path || '';
@@ -75,6 +112,7 @@ const updateActiveNav = () => {
 
 // Update active nav & bottom nav padding on route change
 onMounted(() => {
+  checkAuthentication();
   updateActiveNav();
   // Delay to ensure DOM is rendered
   nextTick(() => {
@@ -88,6 +126,8 @@ onUnmounted(() => {
 });
 
 watch(() => route.path, () => {
+  // Check authentication on each route change
+  checkAuthentication();
   updateActiveNav();
   // Delay to ensure DOM updates before measuring
   nextTick(() => {
@@ -100,7 +140,7 @@ const handleResize = () => {
   const mainWrap = document.querySelector('.app-main-content > .v-main__wrap');
   
   if (mainWrap) {
-    if (hideNavigation.value) {
+    if (hideNavigation.value || !isAuthenticated.value) {
       // Reset padding completely for hidden navigation routes
       mainWrap.style.paddingLeft = '0';
       mainWrap.style.paddingBottom = '0';

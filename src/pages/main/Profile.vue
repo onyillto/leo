@@ -7,7 +7,7 @@
           <v-card-title class="profile-header">
             <v-avatar size="100" class="profile-avatar elevation-6 mb-4">
               <img 
-                src="/bus.jpg" 
+                :src="profile.photo || '/bus.jpg'" 
                 alt="Profile Picture" 
                 class="profile-image"
               />
@@ -23,8 +23,8 @@
               </v-btn>
             </v-avatar>
             <div class="profile-name text-center">
-              <h2 class="text-h6 md-text-h5">Adebayo Oluwaseun</h2>
-              <p class="text-caption md:text-subtitle-1 text-muted">Premium Member</p>
+              <h2 class="text-h6 md-text-h5">{{ profile.name }}</h2>
+              <p class="text-caption md:text-subtitle-1 text-muted">User</p>
             </div>
           </v-card-title>
 
@@ -32,25 +32,14 @@
           <v-card-text>
             <v-form ref="profileForm" lazy-validation>
               <v-row>
-                <v-col cols="12" sm="6">
+                <v-col cols="12">
                   <v-text-field
-                    v-model="profile.firstName"
-                    label="First Name"
+                    v-model="profile.name"
+                    label="Full Name"
                     prepend-icon="mdi-account"
                     outlined
                     dense
-                    :rules="[v => !!v || 'First name is required']"
-                    required
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="profile.lastName"
-                    label="Last Name"
-                    prepend-icon="mdi-account"
-                    outlined
-                    dense
-                    :rules="[v => !!v || 'Last name is required']"
+                    :rules="[v => !!v || 'Full name is required']"
                     required
                   ></v-text-field>
                 </v-col>
@@ -89,39 +78,6 @@
                 </v-col>
               </v-row>
             </v-form>
-          </v-card-text>
-
-          <!-- Membership & Rewards -->
-          <v-card-text class="px-2 px-sm-6">
-            <v-row>
-              <v-col cols="4">
-                <v-card outlined class="text-center stat-card">
-                  <v-card-text class="px-1 px-sm-3 py-2 py-sm-4">
-                    <v-icon color="blue" size="32" class="mb-1">mdi-wallet-membership</v-icon>
-                    <h3 class="text-caption text-sm-subtitle-1">Membership</h3>
-                    <p class="text-body-2 text-sm-h6 blue--text">Premium</p>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-              <v-col cols="4">
-                <v-card outlined class="text-center stat-card">
-                  <v-card-text class="px-1 px-sm-3 py-2 py-sm-4">
-                    <v-icon color="green" size="32" class="mb-1">mdi-currency-ngn</v-icon>
-                    <h3 class="text-caption text-sm-subtitle-1">Cashback</h3>
-                    <p class="text-body-2 text-sm-h6 green--text">₦5,980</p>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-              <v-col cols="4">
-                <v-card outlined class="text-center stat-card">
-                  <v-card-text class="px-1 px-sm-3 py-2 py-sm-4">
-                    <v-icon color="orange" size="32" class="mb-1">mdi-map-marker</v-icon>
-                    <h3 class="text-caption text-sm-subtitle-1">Trips</h3>
-                    <p class="text-body-2 text-sm-h6 orange--text">12</p>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
           </v-card-text>
 
           <!-- Action Buttons -->
@@ -198,15 +154,15 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 
 // Profile Data
 const profile = reactive({
-  firstName: 'Adebayo',
-  lastName: 'Oluwaseun',
-  email: 'adebayo.oluwaseun@example.com',
-  phone: '+234 810 123 4567',
-  gender: 'Male'
+  name: '',
+  email: '',
+  phone: '',
+  gender: '',
+  photo: '/bus.jpg'
 });
 
 // Password Change Data
@@ -221,34 +177,199 @@ const profileForm = ref(null);
 const passwordForm = ref(null);
 const passwordDialog = ref(false);
 
+// Load user data from localStorage
+const loadUserFromLocalStorage = () => {
+  try {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      profile.name = user.name || '';
+      profile.email = user.email || '';
+      profile.phone = user.phone || '';
+      profile.gender = user.gender || '';
+      if (user.photo) {
+        profile.photo = user.photo;
+      }
+    }
+  } catch (error) {
+    console.error('Error loading user from localStorage:', error);
+  }
+};
+
 // Methods
-const updateProfile = () => {
+const updateProfile = async () => {
   // Validate form
   const isValid = profileForm.value.validate();
   
   if (isValid) {
-    // Simulate profile update
-    console.log('Profile Updated:', profile);
-    // In a real app, you would call an API here
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('Authentication required');
+        return;
+      }
+
+      // Prepare data
+      const userData = {
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        gender: profile.gender
+      };
+
+      // Update profile
+      const response = await fetch('https://user.bloomrydes.org/api/v1/interstate/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update profile');
+      }
+
+      const data = await response.json();
+
+      // Update localStorage with new user data
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const updatedUser = { 
+        ...currentUser, 
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        gender: profile.gender
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+
+      // Show success message
+      alert('Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert(error.message || 'Failed to update profile');
+    }
   }
 };
 
-const changePassword = () => {
+const changePassword = async () => {
   // Validate password form
   const isValid = passwordForm.value.validate();
   
   if (isValid) {
-    // Simulate password change
-    console.log('Password Changed');
-    passwordDialog.value = false;
-    // In a real app, you would call an API here
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('Authentication required');
+        return;
+      }
+
+      // Verify passwords match
+      if (password.new !== password.confirm) {
+        alert('Passwords do not match');
+        return;
+      }
+
+      // Update password
+      const response = await fetch('https://user.bloomrydes.org/api/v1/interstate/user/change-password', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          currentPassword: password.current,
+          newPassword: password.new
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to change password');
+      }
+
+      // Reset form and close dialog
+      password.current = '';
+      password.new = '';
+      password.confirm = '';
+      passwordDialog.value = false;
+      
+      // Show success message
+      alert('Password changed successfully');
+    } catch (error) {
+      console.error('Error changing password:', error);
+      alert(error.message || 'Failed to change password');
+    }
   }
 };
 
-const openAvatarUpload = () => {
-  // Implement avatar upload logic
-  console.log('Open Avatar Upload');
+const openAvatarUpload = async () => {
+  // Implementation would typically open a file dialog
+  // and upload the selected image to the server
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  
+  fileInput.addEventListener('change', async (event) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      
+      // Create a FormData object to send the file
+      const formData = new FormData();
+      formData.append('avatar', file);
+      
+      try {
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('Authentication required');
+          return;
+        }
+        
+        // Upload the avatar
+        const response = await fetch('https://user.bloomrydes.org/api/v1/interstate/user/profile/photo', {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to upload avatar');
+        }
+        
+        // Update photo URL in user localStorage
+        const data = await response.json();
+        if (data.photo) {
+          profile.photo = data.photo;
+          
+          // Update localStorage
+          const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+          currentUser.photo = data.photo;
+          localStorage.setItem('user', JSON.stringify(currentUser));
+        }
+        
+        // Show success message
+        alert('Avatar updated successfully');
+      } catch (error) {
+        console.error('Error uploading avatar:', error);
+        alert(error.message || 'Failed to upload avatar');
+      }
+    }
+  });
+  
+  fileInput.click();
 };
+
+// Load user data when component mounts
+onMounted(() => {
+  loadUserFromLocalStorage();
+});
 </script>
 
 <style scoped>

@@ -60,7 +60,7 @@
 
     <!-- Filter Bar -->
     <v-row class="mb-6">
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
         <v-select
           v-model="statusFilter"
           :items="['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled']"
@@ -69,9 +69,10 @@
           clearable
           color="blue"
           dense
+          @change="fetchTransactions"
         />
       </v-col>
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
         <v-select
           v-model="paymentStatusFilter"
           :items="['All', 'Paid', 'Pending', 'Failed']"
@@ -80,20 +81,10 @@
           clearable
           color="blue"
           dense
+          @change="fetchTransactions"
         />
       </v-col>
-      <v-col cols="12" sm="3">
-        <v-select
-          v-model="paymentMethodFilter"
-          :items="['All', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Cash']"
-          label="Payment Method"
-          outlined
-          clearable
-          color="blue"
-          dense
-        />
-      </v-col>
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
         <v-text-field
           v-model="dateFilter"
           label="Booking Date"
@@ -102,6 +93,7 @@
           clearable
           color="blue"
           dense
+          @change="fetchTransactions"
         />
       </v-col>
     </v-row>
@@ -109,7 +101,7 @@
     <!-- Transaction History Table -->
     <v-data-table
       :headers="headers"
-      :items="filteredBookings"
+      :items="bookings"
       class="elevation-1 rounded-lg"
       :items-per-page="10"
       :loading="loading"
@@ -208,9 +200,6 @@
               </v-chip>
             </v-col>
             <v-col cols="6">
-              <strong>Payment Method:</strong> {{ selectedBooking.paymentMethod }}
-            </v-col>
-            <v-col cols="6">
               <strong>Transaction ID:</strong> {{ selectedBooking.transactionId }}
             </v-col>
             <v-col cols="6">
@@ -234,13 +223,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 // State
 const bookings = ref([]);
+const summary = ref({
+  totalBookings: 0,
+  totalSpent: 0,
+  pendingPayments: 0,
+  completedTrips: 0
+});
 const statusFilter = ref(null);
 const paymentStatusFilter = ref(null);
-const paymentMethodFilter = ref(null);
 const dateFilter = ref(null);
 const detailsDialog = ref(false);
 const selectedBooking = ref(null);
@@ -257,33 +251,6 @@ const headers = [
   { text: 'Status', value: 'status', sortable: false },
   { text: 'Actions', value: 'actions', sortable: false },
 ];
-
-// Summary statistics
-const summary = computed(() => {
-  const totalBookings = bookings.value.length;
-  const totalSpent = bookings.value.reduce((sum, booking) => sum + booking.price, 0);
-  const pendingPayments = bookings.value.filter(booking => booking.paymentStatus === 'Pending').length;
-  const completedTrips = bookings.value.filter(booking => booking.status === 'Completed').length;
-  return { totalBookings, totalSpent, pendingPayments, completedTrips };
-});
-
-// Filtering
-const filteredBookings = computed(() => {
-  return bookings.value.filter(booking => {
-    const matchesStatus = !statusFilter.value ||
-      (statusFilter.value === 'All') ||
-      (booking.status === statusFilter.value);
-    const matchesPaymentStatus = !paymentStatusFilter.value ||
-      (paymentStatusFilter.value === 'All') ||
-      (booking.paymentStatus === paymentStatusFilter.value);
-    const matchesPaymentMethod = !paymentMethodFilter.value ||
-      (paymentMethodFilter.value === 'All') ||
-      (booking.paymentMethod === paymentMethodFilter.value);
-    const matchesDate = !dateFilter.value ||
-      booking.date === dateFilter.value;
-    return matchesStatus && matchesPaymentStatus && matchesPaymentMethod && matchesDate;
-  });
-});
 
 // Helper methods
 const getStatusColor = (status) => {
@@ -310,84 +277,91 @@ const viewBookingDetails = (booking) => {
   detailsDialog.value = true;
 };
 
-// Fetch data
-const fetchBookings = async () => {
+// API calls
+const fetchTransactions = async () => {
   loading.value = true;
   try {
-    // Simulate delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Build query parameters for filtering
+    const params = new URLSearchParams();
+    if (statusFilter.value && statusFilter.value !== 'All') {
+      params.append('status', statusFilter.value);
+    }
+    if (paymentStatusFilter.value && paymentStatusFilter.value !== 'All') {
+      params.append('paymentStatus', paymentStatusFilter.value);
+    }
+    if (dateFilter.value) {
+      params.append('date', dateFilter.value);
+    }
 
-    // Dummy data
-    const dummyData = [
-      {
-        id: 1,
-        vehicle: 'Toyota Corolla',
-        origin: 'Lagos',
-        destination: 'Abuja',
-        date: '2024-05-01',
-        time: '10:00 AM',
-        seats: 2,
-        price: 15000,
-        status: 'Completed',
-        name: 'Jane Doe',
-        driverName: 'Ahmed Musa',
-        driverPhone: '08012345678',
-        paymentMethod: 'Credit Card',
-        paymentStatus: 'Paid',
-        transactionId: 'TXN-001',
-        paymentDate: '2024-05-01',
-      },
-      {
-        id: 2,
-        vehicle: 'Honda Accord',
-        origin: 'Ibadan',
-        destination: 'Lagos',
-        date: '2024-05-03',
-        time: '8:00 AM',
-        seats: 1,
-        price: 10000,
-        status: 'Pending',
-        name: 'John Smith',
-        driverName: 'Chinedu Obi',
-        driverPhone: '08098765432',
-        paymentMethod: 'Bank Transfer',
-        paymentStatus: 'Pending',
-        transactionId: 'TXN-002',
-        paymentDate: '2024-05-03',
-      },
-      {
-        id: 3,
-        vehicle: 'Kia Rio',
-        origin: 'Abuja',
-        destination: 'Kaduna',
-        date: '2024-05-05',
-        time: '12:00 PM',
-        seats: 3,
-        price: 20000,
-        status: 'Cancelled',
-        name: 'Amaka Eze',
-        driverName: 'Baba Tunde',
-        driverPhone: '08033445566',
-        paymentMethod: 'Cash',
-        paymentStatus: 'Failed',
-        transactionId: 'TXN-003',
-        paymentDate: '2024-05-05',
+    // Get token from localStorage
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    // Fetch transactions from API
+    const response = await fetch(`https://user.bloomrydes.org/api/v1/interstate/transactions?${params}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
-    ];
+    });
 
-    bookings.value = dummyData;
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch transactions');
+    }
+
+    // Update state with fetched data
+    bookings.value = data.transactions;
+    summary.value = data.summary;
   } catch (error) {
-    console.error('Failed to fetch bookings:', error);
-    bookings.value = [];
+    console.error('Failed to fetch transactions:', error);
+    // Handle error state
   } finally {
     loading.value = false;
   }
 };
 
+// Fetch transaction details
+const fetchTransactionDetails = async (id) => {
+  try {
+    // Get token from localStorage
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
 
-// Lifecycle
-fetchBookings();
+    const response = await fetch(`https://user.bloomrydes.org/api/v1/interstate/transactions/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch transaction details');
+    }
+
+    return data.transaction;
+  } catch (error) {
+    console.error('Failed to fetch transaction details:', error);
+    return null;
+  }
+};
+
+// Load data on component mount
+onMounted(() => {
+  fetchTransactions();
+});
 </script>
+
+
 
 <style scoped>
 .v-data-table {

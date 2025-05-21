@@ -1,18 +1,14 @@
 <template>
   <div class="login-container">
     <div class="login-card-wrapper">
-      <!-- Card -->
       <div class="login-card">
-        <!-- Gradient header -->
         <div class="gradient-header"></div>
 
         <div class="card-content">
-          <!-- Back to previous page link -->
           <div class="back-link-container">
             <a href="#" class="back-link">← Back</a>
           </div>
 
-          <!-- Logo and Title -->
           <div class="header-section">
             <div class="logo-container">
               <img src="/create-account-illustration.png" alt="Login Icon" class="logo-image" />
@@ -21,9 +17,7 @@
             <p class="page-subtitle">Sign in to access your account</p>
           </div>
 
-          <!-- Login Form -->
           <form @submit.prevent="handleLogin" class="login-form">
-            <!-- Email/Phone Field -->
             <div class="form-group">
               <label class="input-label">Email or Phone</label>
               <input
@@ -35,7 +29,6 @@
               />
             </div>
 
-            <!-- Password Field -->
             <div class="form-group">
               <label class="input-label">Password</label>
               <div class="password-input-container">
@@ -57,7 +50,6 @@
               </div>
             </div>
 
-            <!-- Submit Button -->
             <button
               type="submit"
               :disabled="loading"
@@ -68,17 +60,15 @@
               <span v-else>Login</span>
             </button>
 
-            <!-- Messages -->
             <div class="messages-container">
               <p v-if="message" class="success-message">{{ message }}</p>
               <p v-if="error" class="error-message">{{ error }}</p>
             </div>
           </form>
 
-          <!-- Signup Link -->
           <div class="signup-container">
             <p class="signup-text">
-              Don't have an account? <a href="/signup" class="signup-link">Sign up</a>
+              Don't have an account? <a href="/auth/signup" class="signup-link">Sign up</a>
             </p>
           </div>
         </div>
@@ -89,7 +79,9 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const emailOrPhone = ref('');
 const password = ref('');
 const loading = ref(false);
@@ -97,12 +89,12 @@ const message = ref('');
 const error = ref('');
 const showPassword = ref(false);
 
+
+
 const handleLogin = async () => {
-  // Reset messages
   message.value = '';
   error.value = '';
 
-  // Validation
   if (!emailOrPhone.value || !password.value) {
     error.value = 'Both fields are required.';
     return;
@@ -110,20 +102,43 @@ const handleLogin = async () => {
 
   loading.value = true;
 
-  // Simulate login delay
-  setTimeout(() => {
-    // Example login success condition
-    if (emailOrPhone.value === 'user@example.com' && password.value === 'password') {
-      message.value = 'Login successful!';
-      emailOrPhone.value = '';
-      password.value = '';
-    } else {
-      error.value = 'Invalid credentials.';
+  try {
+    // Updated to use the correct API endpoint
+    const response = await fetch('https://user.bloomrydes.org/api/v1/interstate/login-user', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    emailOrPhone: emailOrPhone.value, // Changed from phone to emailOrPhone
+    password: password.value,
+  }),
+});
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Login failed.');
     }
+
+    // Store token and user info
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    message.value = data.message || 'Login successful!';
+    emailOrPhone.value = '';
+    password.value = '';
+console.log(emailOrPhone.value, password.value);
+    // Redirect to dashboard after successful login
+    setTimeout(() => {
+      router.push('/home');
+    }, 1500);
+  } catch (err) {
+    console.error('Login error:', err);
+    error.value = err.message || 'An error occurred during login. Please try again.';
+  } finally {
     loading.value = false;
-  }, 1000);
+  }
 };
 </script>
+
 
 <style scoped>
 .login-container {

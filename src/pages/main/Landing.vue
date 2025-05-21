@@ -20,10 +20,10 @@
         <p>Download the BloomRyde app to book bus, taxi, and cargo services across Nigeria with over 200+ routes.</p>
         
         <div class="app-badges">
-          <a href="#" class="app-badge">
+          <a href="https://apps.apple.com/us/app/bloomrydes/id1491366935" class="app-badge">
             <img src="/appstore.png" alt="Download on App Store" />
           </a>
-          <a href="#" class="app-badge">
+          <a href="https://play.google.com/store/apps/details?id=com.bloomrydes.bloom" class="app-badge">
             <img src="/googleplay.png" alt="Get it on Google Play" />
           </a>
         </div>
